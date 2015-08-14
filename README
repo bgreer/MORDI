@@ -1,0 +1,58 @@
+
+Notes for using MCD
+
+First, run
+	./mcd --help
+to get an idea of the command-line options.
+
+Here's a more descriptive list, including both short and long versions of the keywords:
+
+-k  --kernel_set
+	file name for the kernel set. This should be a binary file. Look around for an idl .pro file that converts the old .fits version into a binary file.
+
+-z  --kernel_set_depth
+	another binary file related to kernels, this contains the physical depths of each layer in Mm. Also has delta-z. Look around for idl .pro code to make this
+
+-i  --input
+	filename for the main data input. Should be a binary file, again, look for idl code to make this. Probably something like prep_ola.pro.
+
+-d  --depths
+	one or more depths to target independently.
+	Examples:
+	-d 0
+	-d 0,1,2,3,4
+	-d 0.0,15.0,30.0
+
+-n  --n-values
+	optional restriction on radial order for inversion. listed n-vals will be used, everything else thrown away during read-in
+	Examples:
+	-n 0  (f-mode inversion)
+	-n 8  (good for quick testing)
+	[nothing]  (use all modes)
+
+-o  --output
+	base filename for output. Will be appended to with details about depth, regularization, etc
+
+-l  --lambda
+	log10 value of lambda, typical values between 0 and -5. allows a comma-deparated list
+
+-L  --lambda-z
+	additional log10 lambda to add per Mm in depth, typically 0 to -1. allows list
+
+-m  --mu
+	log 10 value of mu, typically 0 to -5. allows list
+
+-M  --mu-z
+	additional log10 mu to add per Mm in depth, typically 0 to -1. allows list
+
+-A  --apod
+	amount of data apodization to use, useful for smoothing out results. allows list
+
+-p  --padding
+	amount of zero-padding to use around data, in degrees. allows list, but might crash...
+
+-a  --avgker
+	base filename for averaging kernel output. leave out to prevent avgker from being computed at all
+
+-t  --threads
+	number of openmp threads to use.
