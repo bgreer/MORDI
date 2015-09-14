@@ -1,5 +1,8 @@
-
-extern settings glob_set;
+#ifndef MODE_H
+#define MODE_H
+#include <complex>
+#include "grid.h"
+//extern settings glob_set;
 
 // contains both measurement grid and kernel
 
@@ -17,14 +20,7 @@ public:
 	int proc_owner;
 	// everyone holds the ft data together
 
-	mode (int k, int n)
-	{
-		kval = k;
-		nval = n;
-		has_sker = false;
-		proc_owner = -1;
-		err = 0.0;
-	}
+	mode (int k, int n);
 
 	~mode ()
 	{
@@ -32,28 +28,9 @@ public:
 		vy.dealloc();
 	}
 
-	void allocateRealKernel (int x, int y, int z)
-	{
-		int iz;
-		sker = new grid<double> [z];
-		for (iz=0; iz<z; iz++)
-			sker[iz].init(x, y, false);
-	}
-
-	void allocateFTKernel (int x, int y, int z, bool parallel)
-	{
-		int iz, iy;
-		sker_ft = new grid<complex<double> > [z];
-		for (iz=0; iz<z; iz++)
-			sker_ft[iz].init(x,y,parallel);
-	}
-
-	void deallocRealKernel (int z)
-	{
-		int iz;
-		for (iz=0; iz<z; iz++)
-			sker[iz].dealloc();
-		delete [] sker;
-	}
+	void allocateRealKernel (int x, int y, int z);
+	void allocateFTKernel (int x, int y, int z, bool parallel);
+	void deallocRealKernel (int z);
 
 };
+#endif

@@ -1,23 +1,16 @@
 using namespace std;
 #include <iostream>
 #include <fstream>
-#include <algorithm>
-#include <typeinfo>
 #include <vector>
-#include <complex>
 #include <cmath>
-#include <fftw3.h>
-#include <iomanip>
 #include <sys/time.h>
 #include <ctime>
-#include "omp.h"
-#include "mpi.h"
 // MKL:
 #include "mkl.h"
 //#define MKL_Complex16 std::complex<double>
+
 #include "settings.h"
 #include "grid.h"
-#include "parallel.h"
 #include "measurement_set.h"
 #include "inversion.h"
 

@@ -1,7 +1,10 @@
+#ifndef SETTINGS_H
+#define SETTINGS_H
 #include <algorithm>
 #include <sstream>
 #include "tclap/CmdLine.h"
 
+using namespace std;
 
 class settings
 {
@@ -246,3 +249,4 @@ public:
 		}
 	}
 };
+#endif

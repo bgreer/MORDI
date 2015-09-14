@@ -6,14 +6,15 @@ FFTW = -I/shared/fftw/include -L/shared/fftw/lib -lfftw3
 TCLAP = -I/home8/begr7169/SOFTWARE/tclap-1.2.1/include
 
 LIBS = ${FFTW} ${TCLAP} -lm $(MKL) -lrt
-FLAG = -O2 -ip -ipo -openmp
+FLAG = -O2 -openmp
+#-ip -ipo
 #-Weffc++
 
 CC = mpic++
 
 EXECUTABLE = mcd
 
-OBJECTS = main.o
+OBJECTS = main.o inversion.o mode.o measurement_set.o
 
 $(EXECUTABLE) : $(OBJECTS)
 	$(CC) $(FLAG) -o $(EXECUTABLE) $(OBJECTS) $(LIBS)
