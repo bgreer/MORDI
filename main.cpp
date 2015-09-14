@@ -1,6 +1,12 @@
 using namespace std;
 #include <iostream>
+#include <fstream>
+#include <algorithm>
 #include <typeinfo>
+#include <vector>
+#include <complex>
+#include <cmath>
+#include <fftw3.h>
 #include <iomanip>
 #include <sys/time.h>
 #include <ctime>
@@ -10,11 +16,10 @@ using namespace std;
 #include "mkl.h"
 //#define MKL_Complex16 std::complex<double>
 #include "settings.h"
-#include "kernel_set.h"
-#include "measurements.h"
+#include "grid.h"
+#include "parallel.h"
 #include "measurement_set.h"
 #include "inversion.h"
-#include "parallel.h"
 
 settings glob_set;
 
@@ -23,7 +28,7 @@ double getTime()
 	double ret;
 	struct timeval tv;
 	gettimeofday(&tv, NULL);
-	ret = (tv.tv_sec-1422700000) + tv.tv_usec*1e-6;
+	ret = (tv.tv_sec) + tv.tv_usec*1e-6;
 	return ret;
 }
 

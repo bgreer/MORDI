@@ -6,7 +6,8 @@ FFTW = -I/shared/fftw/include -L/shared/fftw/lib -lfftw3
 TCLAP = -I/home8/begr7169/SOFTWARE/tclap-1.2.1/include
 
 LIBS = ${FFTW} ${TCLAP} -lm $(MKL) -lrt
-FLAG = -O2 -ip -ipo -openmp -Weffc++
+FLAG = -O2 -ip -ipo -openmp
+#-Weffc++
 
 CC = mpic++
 
