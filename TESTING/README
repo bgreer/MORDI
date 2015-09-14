@@ -1,0 +1,61 @@
+
+
+Example of good run:
+
+--- 3D Multi-Channel Deconvolution ---
+    Verbose Level: 9001
+    
+ -Run Details-
+    Kernel Set: kers_blocks
+    Kernel Depths: kers_z
+    Input Data: dataset_synth
+    Output Name: out
+    No Averaging Kernel
+    Number of Depths: 4
+    No Radial Order Restriction
+    Amount of Apodization: 16.000000
+    Amount of Padding: 32.000000
+    Number of Processes: 1
+    Number of Threads: 1
+
+Found 260642 measurements in file.
+Using 2 unique modes.
+Loading kernel set..
+Enforcing Normalization..
+Done loading kernels.
+ITERATION: Padding (32.000000)
+Final grid has dimensions 617,617
+Transforming kernels..
+Done transforming kernels.
+Computing Overlap..
+Done computing overlap.
+ITERATION: Data Apodization (16.000000)
+Transforming measurements..
+Done transforming measurements.
+ITERATION: Lambda-z (0.000000)
+ITERATION: Mu-z (0.000000)
+ITERATION: Lambda (0.000000)
+ITERATION: Mu (0.000000)
+ITERATION: SigmaZ {0.000000)
+ITERATION: SigmaZ-min {0.100000)
+ITERATION: SigmaH {0.000000)
+ITERATION: SigmaH-min {0.100000)
+ITERATION: Depth (0.000000)
+<<INVERSION>>
+Writing result to file out_0.00_0.000_0.000_32.0_16.0_0.100_0.100
+ITERATION: Depth (3.000000)
+<<INVERSION>>
+Writing result to file out_3.00_0.000_0.000_32.0_16.0_0.100_0.100
+ITERATION: Depth (6.000000)
+<<INVERSION>>
+Writing result to file out_6.00_0.000_0.000_32.0_16.0_0.100_0.100
+ITERATION: Depth (9.000000)
+<<INVERSION>>
+Writing result to file out_9.00_0.000_0.000_32.0_16.0_0.100_0.100
+Total Runtime: 69.638481 seconds.
+
+
+
+./mcd  --kernel_set kers_blocks  --kernel_set_depth kers_z  --input dataset_synth  --depths 0,3,6,9  --output out  --apod 16.0  --padding 32  --threads 1  --lambda-z 0  --mu-z 0  --lambda 0  --mu -4,-2,0,2,4
+
+compare_out, '../TESTING/out',[0,3,6,9,12],[0],[-4,-2,0,2,4],[32],[16],[0.1],[0.1]
