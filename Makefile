@@ -14,7 +14,7 @@ CC = mpic++
 
 EXECUTABLE = mcd
 
-OBJECTS = main.o inversion.o mode.o measurement_set.o
+OBJECTS = main.o inversion.o mode.o measurement_set.o iterate_params.o
 
 $(EXECUTABLE) : $(OBJECTS)
 	$(CC) $(FLAG) -o $(EXECUTABLE) $(OBJECTS) $(LIBS)

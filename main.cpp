@@ -13,6 +13,7 @@ using namespace std;
 #include "grid.h"
 #include "measurement_set.h"
 #include "inversion.h"
+#include "iterate_params.h"
 
 settings glob_set;
 
@@ -34,6 +35,7 @@ int main (int argc, char *argv[])
 	double starttime, endtime;
 	measurement_set mset;
 	inversion inv;
+	iterate_params looper;
 	grid<double> grid1;
 	grid<double> grid2;
 	bool target_loaded = false;
@@ -49,6 +51,7 @@ int main (int argc, char *argv[])
 	// parse global settings
 	glob_set.parse(argc, argv); // set up and parse command-line args
 	glob_set.setParallel(myid,nproc); // serial
+	looper.init();
 	// force number of threads in openmp
 	omp_set_dynamic(0);
 	omp_set_num_threads(glob_set.nthreads);
@@ -60,55 +63,38 @@ int main (int argc, char *argv[])
 	// parallelization to distribute whole kernels among processes
 	mset.loadKernelSet(glob_set.kernel_set_fname, glob_set.kernel_z_fname);
 
-// BEGIN LOOPS
-	for (itpad=0; itpad<glob_set.padding.size(); itpad++) { // padding loop
-		glob_set.currpadding = glob_set.padding[itpad];
-		if (glob_set.myid==0) cout << "ITERATION: Padding ("<<fixed<<glob_set.currpadding<<")\n";
+	// set padding size, does not reallocate memory yet
+	// just sets some integers for later
+	mset.setPaddedSize();
+	// this requires knowing the padding size
+	mset.createCovar();
+	mset.transformKernels();
+	mset.computeOverlap();
+	mset.clearTransform();
+	mset.transformMeasurements();
+	// remove modes that don't have a kernel or don't have measurements
+	inv.init(mset.nx, mset.ny, mset.nz_kers, mset.set.size());
 
-		mset.setPaddedSize();
-		mset.createCovar();
-		mset.transformKernels();
-		mset.computeOverlap();
+	do
+	{
+		// do things based on which parameter changed last
+		// answer can be -1, which means this is the first iter
+		switch (looper.keyparam)
+		{
+			case 10: // padding changed
+				mset.setPaddedSize();
+				mset.createCovar();
+				mset.transformKernels();
+				mset.computeOverlap();
+				break;
+			case 9: // apodization changed
+				mset.clearTransform();
+				mset.transformMeasurements();
+				inv.init(mset.nx, mset.ny, mset.nz_kers, mset.set.size());
+				break;
+		}
 
-	for (itapod=0; itapod<glob_set.apodization.size(); itapod++) { // apodization loop
-		glob_set.currapodization = glob_set.apodization[itapod];
-		if (glob_set.myid==0) cout << "ITERATION: Data Apodization ("<<fixed<<glob_set.currapodization<<")\n";
-
-		mset.clearTransform();
-		mset.transformMeasurements();
-		// remove modes that don't have a kernel or don't have measurements
-		inv.init(mset.nx, mset.ny, mset.nz_kers, mset.set.size());
-
-	for (itreg1z=0; itreg1z<glob_set.reg1z.size(); itreg1z++) { // regularization 1z loop
-		glob_set.currreg1z = glob_set.reg1z[itreg1z];
-		if (glob_set.myid==0) cout << "ITERATION: Lambda-z ("<<fixed<<glob_set.currreg1z<<")\n";
-	for (itreg2z=0; itreg2z<glob_set.reg2z.size(); itreg2z++) { // regularization 2z loop
-		glob_set.currreg2z = glob_set.reg2z[itreg2z];
-		if (glob_set.myid==0) cout << "ITERATION: Mu-z ("<<fixed<<glob_set.currreg2z<<")\n";
-	for (itreg1=0; itreg1<glob_set.reg1.size(); itreg1++) { // regularization 1 loop
-		glob_set.currreg1 = glob_set.reg1[itreg1];
-		if (glob_set.myid==0) cout << "ITERATION: Lambda ("<<fixed<<glob_set.currreg1<<")\n";
-	for (itreg2=0; itreg2<glob_set.reg2.size(); itreg2++) { // regularization 2 loop
-		glob_set.currreg2 = glob_set.reg2[itreg2];
-		if (glob_set.myid==0) cout << "ITERATION: Mu ("<<fixed<<glob_set.currreg2<<")\n";
-	for (itsz=0; itsz<glob_set.sigmaz.size(); itsz++) { // sigmaz loop
-		glob_set.currsigmaz = glob_set.sigmaz[itsz];
-		if (glob_set.myid==0) cout << "ITERATION: SigmaZ {" << glob_set.currsigmaz<<")\n";
-	for (itszm=0; itszm<glob_set.sigmaz_min.size(); itszm++) { // sigmaz_min loop
-		glob_set.currsigmaz_min = glob_set.sigmaz_min[itszm];
-		if (glob_set.myid==0) cout << "ITERATION: SigmaZ-min {" << glob_set.currsigmaz_min<<")\n";
-	for (itsh=0; itsh<glob_set.sigmah.size(); itsh++) { // sigmah loop
-		glob_set.currsigmah = glob_set.sigmah[itsh];
-		if (glob_set.myid==0) cout << "ITERATION: SigmaH {" << glob_set.currsigmah<<")\n";
-	for (itshm=0; itshm<glob_set.sigmah_min.size(); itshm++) { // sigmah_min loop
-		glob_set.currsigmah_min = glob_set.sigmah_min[itshm];
-		if (glob_set.myid==0) cout << "ITERATION: SigmaH-min {" << glob_set.currsigmah_min<<")\n";
-	for (itdepth=0; itdepth<glob_set.depths.size(); itdepth++) { // depth loop
-		glob_set.currdepth = glob_set.depths[itdepth];
-		if (glob_set.myid==0) cout << "ITERATION: Depth ("<<fixed<<glob_set.currdepth<<")\n";
-
-
-		// INVERSION
+		// do the actual inversion
 		if (glob_set.myid==0) cout << "<<INVERSION>>\n";
 
 		if (glob_set.target_fname!="" && !target_loaded)
@@ -117,9 +103,9 @@ int main (int argc, char *argv[])
 			target_loaded = true;
 		} else
 			inv.setTarget(
-					max(glob_set.currsigmah*glob_set.currdepth,glob_set.currsigmah_min),
-					max(glob_set.currsigmaz*glob_set.currdepth,glob_set.currsigmaz_min),
-					&mset);
+				max(glob_set.currsigmah*glob_set.currdepth,glob_set.currsigmah_min),
+				max(glob_set.currsigmaz*glob_set.currdepth,glob_set.currsigmaz_min),
+				&mset);
 		inv.solveCoefs(&mset);
 		if (glob_set.coefs_save_fname != "") inv.saveCoefs(&mset);
 		inv.clearVelocity();
@@ -128,18 +114,9 @@ int main (int argc, char *argv[])
 		inv.outputVelocity();
 		if (glob_set.avgker_fname!="") inv.outputAvgker(&mset);
 
-	} // depth loop
-	} // sigmah-min loop
-	} // sigmah loop
-	} // sigmaz-min loop
-	} // sigmaz loop
-	} // mu loop
-	} // lambda loop
-	} // mu-z loop
-	} // lambda-z loop
-	} // padding loop
-	} // apodization loop
-// END LOOPS
+	} while (looper.nextParams());
+
+
 
 	fftw_cleanup();
 	endtime = getTime();
