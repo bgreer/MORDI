@@ -1,11 +1,14 @@
 
-Notes for using MCD
+# To get a rough idea on how to use the inverison code, run ./mcd -help
 
-First, run
-	./mcd --help
-to get an idea of the command-line options.
+# To get a better idea on how to use it, check out the information in the TESTING/ sub-directory. 
 
-Here's a more descriptive list, including both short and long versions of the keywords:
+# To understand what the inversion is actualy doing, read my thesis. 
+
+
+
+
+Here's a more descriptive list than the one printed with ./mcd -help, including both short and long versions of the keywords:
 
 -k  --kernel_set
 	file name for the kernel set. This should be a binary file. Look around for an idl .pro file that converts the old .fits version into a binary file.
