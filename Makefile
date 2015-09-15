@@ -18,6 +18,7 @@ OBJECTS = main.o inversion.o mode.o measurement_set.o
 
 $(EXECUTABLE) : $(OBJECTS)
 	$(CC) $(FLAG) -o $(EXECUTABLE) $(OBJECTS) $(LIBS)
+	rm $(OBJECTS)
 
 $(OBJECTS) : *.cpp *.h
 	$(CC) -c $(FLAG) *.cpp $(LIBS)

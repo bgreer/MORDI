@@ -1,61 +1,30 @@
 
+Running the inversion improperly on real data can produce results that look just fine. Thus, this test inversion uses a known sub-surface flow field so you can make sure the results roughly match the correct answer. 
 
-Example of good run:
+In this directory there are the files needed to run a test inversion that should be small enough to run on any reasonably modern workstation. There is a kernel set in binary format that has just two kernels. These kernels are shaped like cylinders and extend from the surface to 5 and 10 Mm. These kernels have been run over a known flow field to create the data set. The known flow field is zero everywhere except in a square region near the surface and a triangular region a little deeper down. In these regions, the flow is 1 m/s zonal, 1 m/s meridional. The depths of these regions are set such that the square is seen by both kernels, and the triangle only by the deeper kernel. This way, the shapes of the regions help you understand how the inversion deals with horizontal resolution, and the difference between the shapes helps you see how the inversion isolates things in depth. 
 
---- 3D Multi-Channel Deconvolution ---
-    Verbose Level: 9001
-    
- -Run Details-
-    Kernel Set: kers_blocks
-    Kernel Depths: kers_z
-    Input Data: dataset_synth
-    Output Name: out
-    No Averaging Kernel
-    Number of Depths: 4
-    No Radial Order Restriction
-    Amount of Apodization: 16.000000
-    Amount of Padding: 32.000000
-    Number of Processes: 1
-    Number of Threads: 1
+Assuming you set up a soft link to the inversion binary in this directory, the following command will run the inversion on this test data set:
 
-Found 260642 measurements in file.
-Using 2 unique modes.
-Loading kernel set..
-Enforcing Normalization..
-Done loading kernels.
-ITERATION: Padding (32.000000)
-Final grid has dimensions 617,617
-Transforming kernels..
-Done transforming kernels.
-Computing Overlap..
-Done computing overlap.
-ITERATION: Data Apodization (16.000000)
-Transforming measurements..
-Done transforming measurements.
-ITERATION: Lambda-z (0.000000)
-ITERATION: Mu-z (0.000000)
-ITERATION: Lambda (0.000000)
-ITERATION: Mu (0.000000)
-ITERATION: SigmaZ {0.000000)
-ITERATION: SigmaZ-min {0.100000)
-ITERATION: SigmaH {0.000000)
-ITERATION: SigmaH-min {0.100000)
-ITERATION: Depth (0.000000)
-<<INVERSION>>
-Writing result to file out_0.00_0.000_0.000_32.0_16.0_0.100_0.100
-ITERATION: Depth (3.000000)
-<<INVERSION>>
-Writing result to file out_3.00_0.000_0.000_32.0_16.0_0.100_0.100
-ITERATION: Depth (6.000000)
-<<INVERSION>>
-Writing result to file out_6.00_0.000_0.000_32.0_16.0_0.100_0.100
-ITERATION: Depth (9.000000)
-<<INVERSION>>
-Writing result to file out_9.00_0.000_0.000_32.0_16.0_0.100_0.100
-Total Runtime: 69.638481 seconds.
+./mcd  --kernel_set kers_blocks  --kernel_set_depth kers_z  --input dataset_synth  --depths 0  --output out  --apod 16.0  --padding 32  --threads 1  --lambda-z 0  --mu-z 0  --lambda 0  --mu 0
 
+Using MPI and OpenMP will speed up the inversion, but for such a small problem it's hardly worth the extra confusion. Most of the command-line options have either obvious purposes (--kernel_set) or are explained in my thesis (--lambda). Further explanation can be had by typing './mcd -help'.
 
+If that command works and produces an output file, you should try to read it into IDL. There are a bunch of IDL files in the idl/ directory that help you deal with the inversion solutions. The program of interest now is read_grid.pro. There are a few different options when running read_grid, but for now you just need to do:
 
-./mcd  --kernel_set kers_blocks  --kernel_set_depth kers_z  --input dataset_synth  --depths 0,3,6,9  --output out  --apod 16.0  --padding 32  --threads 1  --lambda-z 0  --mu-z 0  --lambda 0  --mu -4,-2,0,2,4
+read_grid, 'out_0.00_....', grid=g, /binary
 
-compare_out, '../TESTING/out',[0,3,6,9,12],[0],[-4,-2,0,2,4],[32],[16],[0.1],[0.1]
+The first parameter is the exact filename of the solution you want to read in, the second tells the program where to spit out the result, and the /binary flag is necessary for the current generation of MCD. It used to not be, but ASCII files got slow when the resolution started to rise. If everything has worked well, the ux(x,y) solution should be in g[*,*,0]. The next slice (g[*,*,1]) is the error on ux (may need scaling), after that is uy, then error on uy. 
+
+Running the inversion over and over again for each depth, lambda, mu, sigmah, sigmaz, etc would be pretty awful. Luckily, many of the command-line options can be given a list to iterate over. In this next example, we will run an inversion that solves for a few depths and a few values of regularization. The format for a list in the command-line options is simple:
+
+./mcd  --kernel_set kers_blocks  --kernel_set_depth kers_z  --input dataset_synth  --depths 0,3,6,9  --output out  --apod 16.0  --padding 32  --threads 1  --lambda-z 0  --mu-z 0  --lambda -6,3,3,6  --mu 0
+
+This command will loop over each of the four values of depth and the four values of lambda, producing 16 different solutions. Each will be written to the disk in a separate file with a name indicating the parameters used. You are free to put lists into many of the command-line options (see ./mcd -help), but it's easy to accidentally set up a run that takes far too long. 
+
+Running the IDL read_grid code on each file just to compare them would be a chore, so I have another IDL code that can be set to read in solutions from a basic parameter range. The IDL code is compare_out.pro. In this, you provide an array of values for the various parameters like depth, lambda, mu, etc, and the code will read in every parameter combination. Due to visualization limitations, you can only provide arrays with more than one element to two parameters. For example:
+
+compare_out, '../TESTING/out',[0,3,6,9],[0],[-6,-3,3,6],[32],[16],[0.1],[0.1]
+
+This will read in all of the output files created in the previous inversion run. The depth and lambda have been given arrays with 4 elements, and every other parameter gets a 1-element array. The program will read in all of the files using read_grid, then prompt for a continue command (.c) to begin plotting things. There are likely a few plots that are meaningless, but there should be some color maps of the solution and some power spectra. This kind of bulk analysis is very useful when tuning the inversion. 
+
+To have the inversion output averaging kernels, you just need to add a new command-line option, '-a avgker'. This will use "avgker" as the base of the filenames for each parameter combination. High-resolution inversions have very large averaging kernels (hundreds of MBs), so creating and saving averaging kernels for a big parameter space search is rarely a good idea. The inversion takes much longer to run, and will attempt to write a massive amount of data to the disk. There are some IDL codes (read_avgker.pro, compare_avgker.pro) that can help analyze many averaging kernels at once.
