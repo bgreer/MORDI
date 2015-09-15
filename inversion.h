@@ -19,11 +19,11 @@ class inversion
 {
 public:
 	int nx, ny, nz, nn;
-	grid<complex<double> > *coefs; // one grid for each mode
+	grid<complex<double> > *coefs; // a coefficients, one kx,ky grid for each mode
 	grid<complex<double> > target_ft;
-	grid<complex<double> > *target_3d;
-	grid<double> vx, vy;
-	grid<complex<double> > coefs_real;
+	grid<complex<double> > *target_3d; // target function, one grid per depth
+	grid<double> vx, vy; // for storing answer
+	grid<complex<double> > coefs_real; // real-space representation of coefs, temp usage
 	complex<double> err;
 	grid<double> *avgker; // one grid for each depth
 	double *target_z;

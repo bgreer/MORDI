@@ -1,4 +1,6 @@
 
+; the /st flag makes this program stop before the end. useful for debugging
+; most of the time, you'll need the /binary flag
 PRO read_grid, infile, three=three, grid=grid, st=st, binary=binary
 
 	if (keyword_set(binary)) then begin

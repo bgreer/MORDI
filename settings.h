@@ -4,6 +4,10 @@
 #include <sstream>
 #include "tclap/CmdLine.h"
 
+// All of the global settings for the inversion. There is a single
+// instance of this class that gets passed around to any function
+// that needs to know the settings
+
 using namespace std;
 
 class settings

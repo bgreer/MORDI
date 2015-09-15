@@ -9,19 +9,24 @@ PRO kernel_fits_to_bin, input, output
 
 	kers = readfits(input)
 
+	; figure out dimensions
 	nx = (size(kers))[1]
 	ny = (size(kers))[2]
 	nz = (size(kers))[3]
 
 	; count non-zero kernels
+	; no need to store a bunch of zeroes
+	; unlike some other standards....
 	tot = total(total(total(kers,1),1),1)
-	w = where(tot gt 0.0, nkers)
+	w = where(tot ne 0.0, nkers)
 
 	print, 'Number of kernels: ',nkers
 	print, 'Kernel dimensions: ',nx, ny, nz
 
 	openw, 3, output
-	; write dimensions
+	; write dimensions as header
+	; want a 4-byte integer, but IDL is dumb
+	; so we specify long(), which is 4 bytes in IDL
 	writeu, 3, long(nkers)
 	writeu, 3, long(nx)
 	writeu, 3, long(ny)
@@ -34,9 +39,11 @@ PRO kernel_fits_to_bin, input, output
 		thisk = thisker mod 60 + 1
 		thisn = floor(thisker / 60.)
 		print, thisker, thisk, thisn
-		; write header
+
+		; write header for this particular kernel
 		writeu, 3, long(thisk)
 		writeu, 3, long(thisn)
+		; write data as 8-byte float (double)
 		temp = reform(kers[*,*,*,thisker])
 		writeu, 3, double(temp)
 	endfor

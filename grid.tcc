@@ -1,18 +1,22 @@
 
-//#include "grid.h"
+// Template implementation of Grid class
+// check grid.h for explanation
 
+// destructor
 template <class Type>
 grid<Type>::~grid ()
 {
 	dealloc();
 }
 
+// constructor
 template <class Type>
 grid<Type>::grid ()
 {
 	alloc = false;
 }
 
+// constructor
 template <class Type>
 grid<Type>::grid (int x, int y, bool doparallel)
 {

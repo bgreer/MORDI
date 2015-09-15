@@ -2,9 +2,10 @@
 #define MODE_H
 #include <complex>
 #include "grid.h"
-//extern settings glob_set;
 
-// contains both measurement grid and kernel
+// Contains the measurements and kernels for all disk locations
+// of a single wave mode. The kernels are translationally invariant,
+// so you just need one kernel. The measurements are held in a grid
 
 class mode
 {

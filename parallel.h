@@ -3,8 +3,8 @@
 #include <typeinfo>
 #include "mpi.h"
 #include "grid.h"
-//extern settings glob_set;
 
+// Helper functions for grids that act like some of the standard MPI calls.
 
 template<typename T> MPI_Datatype convertType(T thing);
 

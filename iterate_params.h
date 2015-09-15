@@ -3,6 +3,10 @@
 #include "settings.h"
 #define NUM_PARAMS 11
 
+// The inversion code loops over many different variables to do a 
+// parameter space search. This bit of code handles that looping
+// so that it doesn't clutter up main.cpp
+
 extern settings glob_set;
 
 class iterate_params

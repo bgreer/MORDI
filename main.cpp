@@ -79,35 +79,40 @@ int main (int argc, char *argv[])
 	{
 		// do things based on which parameter changed last
 		// answer can be -1, which means this is the first iter
-		switch (looper.keyparam)
+		if (looper.keyparam >= 10)
 		{
-			case 10: // padding changed
-				mset.setPaddedSize();
-				mset.createCovar();
-				mset.transformKernels();
-				mset.computeOverlap();
-				break;
-			case 9: // apodization changed
-				mset.clearTransform();
-				mset.transformMeasurements();
-				inv.init(mset.nx, mset.ny, mset.nz_kers, mset.set.size());
-				break;
+			mset.setPaddedSize();
+			mset.createCovar();
+			mset.transformKernels();
+			mset.computeOverlap();
+		}
+		if (looper.keyparam >= 9)
+		{
+			mset.clearTransform();
+			mset.transformMeasurements();
+			inv.init(mset.nx, mset.ny, mset.nz_kers, mset.set.size());
 		}
 
 		// do the actual inversion
 		if (glob_set.myid==0) cout << "<<INVERSION>>\n";
 
+		// pick a target function
 		if (glob_set.target_fname!="" && !target_loaded)
 		{
+			// load target from file, same format as avgker
 			inv.loadTarget();
 			target_loaded = true;
-		} else
+		} else {
+			// create Gaussian target function
 			inv.setTarget(
 				max(glob_set.currsigmah*glob_set.currdepth,glob_set.currsigmah_min),
 				max(glob_set.currsigmaz*glob_set.currdepth,glob_set.currsigmaz_min),
 				&mset);
+		}
+		// solve for the a coefficients
 		inv.solveCoefs(&mset);
 		if (glob_set.coefs_save_fname != "") inv.saveCoefs(&mset);
+		// create a solution by applying coefficients to measurements
 		inv.clearVelocity();
 		inv.computeVelocity(&mset);
 		inv.computeError(&mset);
